@@ -1,0 +1,47 @@
+name: sanitizer
+on: [push, pull_request]
+concurrency:
+  group: ${{ github.workflow }}-${{ github.job }}-${{ github.ref }}
+  cancel-in-progress: true
+defaults:
+  run:
+    shell: bash -l {0}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: 'sanitizer - ${{ matrix.flags }}'
+    strategy:
+      matrix:
+        flags:
+          - sanitize=address
+          - sanitize=undefined
+          - fast-math -fsanitize=undefined
+        llvm-version: [20]
+    env:
+      CC: clang-${{ matrix.llvm-version }}
+      CXX: clang++-${{ matrix.llvm-version }}
+    steps:
+    - name: Checkout xsimd
+      uses: actions/checkout@v3
+    - name: Setup compiler
+      run: |
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh ${{ matrix.llvm-version }}
+    - name: Configure build
+      run: |
+        mkdir _build
+        cd _build
+        cmake  .. -DBUILD_TESTS=ON \
+                  -DBUILD_BENCHMARK=ON \
+                  -DBUILD_EXAMPLES=ON \
+                  -DDOWNLOAD_DOCTEST=ON \
+                  -DCMAKE_BUILD_TYPE=Debug \
+                  -DCMAKE_CXX_FLAGS='-f${{ matrix.flags }} -O0 -g -fno-inline' \
+                  -G Ninja
+    - name: Build
+      run: ninja -C _build
+    - name: Test
+      run: |
+        cd _build/test
+        ./test_xsimd
