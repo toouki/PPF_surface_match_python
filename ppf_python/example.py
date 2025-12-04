@@ -23,7 +23,7 @@ except ImportError as e:
 def main():
     # File paths - adjust these to your actual file locations
     model_file = "../gear.ply"
-    scene_file = "../gear.ply"
+    scene_file = "../gear_n35.ply"
     
     print("PPF Surface Match Python Example")
     print("=" * 40)
