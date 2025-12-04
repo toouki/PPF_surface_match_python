@@ -6,7 +6,6 @@ Setup script for PPF Python bindings
 import os
 import sys
 import subprocess
-import shutil
 from pathlib import Path
 from setuptools import setup, Extension, find_packages
 from setuptools.command.build_ext import build_ext
